@@ -1,17 +1,78 @@
 import fov.map
+import fov.player
+
 import unittest
 import curses
+
+HEIGHT = 30
+WIDTH = 30
 
 class TestFoV (unittest.TestCase):
     def setUp (self):
         self.screen = open_screen ()
+        self.player = fov.player.Player (HEIGHT // 2, WIDTH // 2)
+        self.map = []
+        for y in range (HEIGHT):
+            self.map.append ([0 for x in range (WIDTH)])
+        for y in range (HEIGHT):
+            self.map [y][0] = 1
+            self.map [y][WIDTH - 1] = 1
+        for x in range (WIDTH):
+            self.map [0][x] = 1
+            self.map [HEIGHT - 1][x] = 1
+        walls = [(14, 13)]
+        for y,x in walls:
+            self.map [y][x] = 1
 
     def test_fov (self):
-        self.screen.addstr (3, 3, "hello world")
-        self.screen.getch ()
+        sight_block_map = fov.map.SightBlockMap (self.map)
+        key = None
+        while key != 'q':
+            visibility_map = fov.map.VisibilityMap (HEIGHT, WIDTH,
+              sight_block_map, self.player)
+            render (self.screen, self.map, visibility_map, self.player)
+            key = self.screen.getch ()
+            key = chr (key)
+            move (self.player, key)
 
     def tearDown (self):
         close_screen (self.screen)
+
+def move (player, key):
+    dx = 0
+    dy = 0
+    if key == 'h':
+        dx = -1
+    elif key == 'j':
+        dy = 1
+    elif key == 'k':
+        dy = -1
+    elif key == 'l':
+        dx = 1
+    elif key == 'y':
+        dx = -1
+        dy = -1
+    elif key == 'u':
+        dx = 1
+        dy = -1
+    elif key == 'b':
+        dx = -1
+        dy = 1
+    elif key == 'n':
+        dx = 1
+        dy = 1
+    player.x += dx
+    player.y += dy
+
+def render (screen, map, visibility_map, player):
+    for y in range (HEIGHT):
+        for x in range (HEIGHT):
+            is_visible = visibility_map [y, x]
+            tile_char = '#' if map[y][x] else '.'
+            screen.addstr (y, x, tile_char, curses.A_REVERSE if is_visible
+              else 0)
+    screen.addstr (player.y, player.x, '@')
+    screen.addstr (HEIGHT + 1, 3, "Use hjkl to move around.")
 
 def open_screen ():
     screen = curses.initscr ()
