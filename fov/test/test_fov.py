@@ -33,12 +33,12 @@ class TestFoV (unittest.TestCase):
             render (self.screen, self.map, visibility_map, self.player)
             key = self.screen.getch ()
             key = chr (key)
-            move (self.player, key)
+            move (self.player, self.map, key)
 
     def tearDown (self):
         close_screen (self.screen)
 
-def move (player, key):
+def move (player, map, key):
     dx = 0
     dy = 0
     if key == 'h':
@@ -63,6 +63,9 @@ def move (player, key):
         dy = 1
     player.x += dx
     player.y += dy
+    if map [player.y][player.x]:
+        player.x -= dx
+        player.y -= dy
 
 def render (screen, map, visibility_map, player):
     for y in range (HEIGHT):
