@@ -6,7 +6,7 @@ def compute (world_map, sight_map):
     radius = sight_map.radius
     for octant_index in range (8):
         cast_light (world_map, sight_map, player, 1, 1.0, 0.0, 
-          radius, fov.map.Octant (0, (player.y, player.x)))
+          radius, fov.map.Octant (octant_index, (player.y, player.x)))
 
 def cast_light (world_map, sight_map, player, starting_row, start_slope, \
         end_slope, radius, octant):
@@ -19,7 +19,8 @@ def cast_light (world_map, sight_map, player, starting_row, start_slope, \
     if start_slope < end_slope:
         return
     for row in range (starting_row, radius + 1):
-        dx, dy = -row - 1, -row
+        dy = - row
+        dx = - row - 1
         blocked = False
         while dx <= 0:
             dx += 1

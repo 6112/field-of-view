@@ -252,7 +252,7 @@ class Octant:
         else:
             y, x = point
             transformed = \
-              (y * self.multipliers ["xy"] + y * self.multipliers ["yy"],
+              (x * self.multipliers ["xy"] + y * self.multipliers ["yy"],
                x * self.multipliers ["xx"] + y * self.multipliers ["yx"])
             transformed = \
               (transformed [0] + self.origin [0],
