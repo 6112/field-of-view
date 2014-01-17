@@ -47,8 +47,8 @@ def cast_light (world_map, sight_map, player, starting_row, start_slope, \
                     if world_map [y, x].blocks_sight and row < radius:
                         # this is a blocking square, start a child scan
                         blocked = True
-                        cast_light (world_map, sight_map, player, row + 1, start_slope, left_slope, radius,
-                                octant)
+                        cast_light (world_map, sight_map, player, row + 1, 
+                          start_slope, left_slope, radius, octant)
                         new_start_slope = right_slope
         if blocked:
             break

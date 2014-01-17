@@ -33,13 +33,10 @@ class TestFoV (unittest.TestCase):
         self.world_map = fov.map.WorldMap (map_list, ground_tile)
 
     def test_fov (self):
-        #sight_block_map = fov.map.SightBlockMap (self.world_map)
         key = None
         while key != 'q':
-            #visibility_map = fov.map.VisibilityMap (HEIGHT, WIDTH,
-              #sight_block_map, self.player, self.screen)
             visibility_map = self.world_map.compute_field_of_view (self.player,
-                    SIGHT_RANGE)
+              SIGHT_RANGE)
             render (self.screen, self.world_map, visibility_map, self.player)
             key = self.screen.getch ()
             key = chr (key)
