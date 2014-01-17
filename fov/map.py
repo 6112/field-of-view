@@ -1,22 +1,34 @@
 import random
+import curses
+
+import fov.player
+import fov.shadowcasting
+
+SIGHT_RANGE = 10
 
 class VisibilityMap:
-    def __init__ (self, height, width, sight_block_map, player):
+    def __init__ (self, height, width, sight_block_map, player, screen):
         self.height = height
         self.width = width
-        self.internal_map = []
         self.sight_block_map = sight_block_map
+        self.player = player
+        self.internal_map = []
         for y in range (height):
             self.internal_map.append ([False for x in range (width)])
-        self.compute_visibility (player)
+        self.compute_visibility (screen)
 
-    def compute_visibility (self, player):
-        for y in range (self.height):
-            for x in range (self.width):
-                dx = abs (x - player.x)
-                dy = abs (y - player.y)
-                sight_range = 8
-                self [y, x] = dx + dy <= sight_range
+    def compute_visibility (self, screen):
+        fov.shadowcasting.compute (self)
+
+    def transform (self, point):
+        y, x = point
+        return (y + self.player.y, x + self.player.x)
+
+    def is_visible (self, point):
+        return self [self.transform (point)]
+
+    def set_visible (self, point, value):
+        self [self.transform (point)] = value
 
     def __iter__ (self):
         for y in range (self.height):

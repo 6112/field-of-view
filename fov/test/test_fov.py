@@ -4,8 +4,8 @@ import fov.player
 import unittest
 import curses
 
-HEIGHT = 30
-WIDTH = 30
+HEIGHT = 40
+WIDTH = 40
 
 class TestFoV (unittest.TestCase):
     def setUp (self):
@@ -20,7 +20,10 @@ class TestFoV (unittest.TestCase):
         for x in range (WIDTH):
             self.map [0][x] = 1
             self.map [HEIGHT - 1][x] = 1
-        walls = [(14, 13)]
+        walls = [(14, 13), (14, 14), (14, 15),
+                 (15, 13), (15, 14), (15, 15),
+                 (16, 13), (16, 14), (16, 15), (16, 18), (16, 21), (16, 22),
+                 (17, 13), (17, 14)]
         for y,x in walls:
             self.map [y][x] = 1
 
@@ -29,7 +32,7 @@ class TestFoV (unittest.TestCase):
         key = None
         while key != 'q':
             visibility_map = fov.map.VisibilityMap (HEIGHT, WIDTH,
-              sight_block_map, self.player)
+              sight_block_map, self.player, self.screen)
             render (self.screen, self.map, visibility_map, self.player)
             key = self.screen.getch ()
             key = chr (key)
