@@ -20,10 +20,16 @@ class Tile:
             display_character: character used to draw this tile onto the screen.
             blocks_sight: True if this tile blocks sight.
             walkable: True if this tile is walkable.
+        Raises:
+            TypeError: if display_character is not a character
         """
-        self.display_character = display_character
-        self.blocks_sight = blocks_sight
-        self.walkable = walkable
+        if not isinstance (display_character, str) or \
+           len (display_character) != 1:
+            raise TypeError ("display_character must be a character.")
+        else:
+            self.display_character = display_character
+            self.blocks_sight = blocks_sight
+            self.walkable = walkable
 
 class WorldMap:
     """Object representing the world map.
@@ -55,9 +61,9 @@ class WorldMap:
                 if default_tile and not self.internal [y][x]:
                     self.internal [y][x] = default_tile
                 if not isinstance (self.internal [y][x], Tile):
-                    raise TypeError ("WorldMap tile must be Tile object.")
+                    raise TypeError ("tile must be a Tile object.")
 
-    def compute_field_of_view (self, player, radius):
+    def get_field_of_view (self, player, radius):
         """Return a list-like object that tells which tiles can be seen.
 
         Args:
@@ -86,16 +92,16 @@ class WorldMap:
             IndexError: if one of the coordinates is not an integer.
             IndexError: if one of the coordinates is not inside the map.
         """
-        if isinstance (point, tuple):
+        if not isinstance (point, tuple):
+            raise IndexError ("point must be a tuple.")
+        else:
             y, x = point
             if not isinstance (y, int) or not isinstance (x, int):
-                raise IndexError ("WorldMap coordinates must be integers.")
+                raise IndexError ("coordinates must be integers.")
             elif y < 0 or x < 0 or x >= self.width or y >= self.height:
-                raise IndexError ("WorldMap coordinates out of range.")
+                raise IndexError ("coordinates out of range.")
             else:
                 return self.internal [y][x]
-        else:
-            raise IndexError ("WorldMap index must be a tuple.")
 
     def __setitem__ (self, point, tile):
         """Set the value of a tile by coordinates.
@@ -114,15 +120,15 @@ class WorldMap:
             TypeError: if tile is not a Tile object.
         """
         if not isinstance (tile, Tile):
-            raise TypeError ("WorldMap tile must be a Tile object.")
+            raise TypeError ("tile must be a Tile object.")
         elif not isinstance (point, tuple):
-            raise IndexError ("WorldMap index must be a tuple.")
+            raise IndexError ("point must be a tuple.")
         else:
             y, x = point
             if not isinstance (y, int) or not isinstance (x, int):
-                raise IndexError ("WorldMap coordinates must be integers.")
+                raise IndexError ("coordinates must be integers.")
             elif y < 0 or x < 0 or x >= height or y >= height:
-                raise IndexError ("WorldMap coordinates out of range.")
+                raise IndexError ("coordinates out of range.")
             else:
                 self.internal [y][x] = tile
 
@@ -151,9 +157,6 @@ class FieldOfViewMap:
         self.internal = []
         for y in range (world_map.height):
             self.internal.append ([False for x in range (world_map.width)])
-        self._compute_visibility ()
-
-    def _compute_visibility (self):
         fov.shadowcasting.compute (self.world_map, self)
 
     def __getitem__ (self, point):
@@ -164,17 +167,24 @@ class FieldOfViewMap:
         visibility_map [y, x]
 
         Args:
-            point: tuple representing the (y, x) coordinates of the point.
+            point: tuple representing the (y, x) coordinates of the tile.
         Returns:
-            True iff the tile is visible.
+            a Tile object representing the tile at the given point.
         Raises:
             IndexError: if point is not a tuple.
+            IndexError: if one of the coordinates is not an integer.
+            IndexError: if one of the coordinates is not inside the map.
         """
         if isinstance (point, tuple):
             y, x = point
-            return self.internal [y][x]
+            if not isinstance (y, int) or not isinstance (x, int):
+                raise IndexError ("coordinates must be integers.")
+            elif y < 0 or x < 0 or x >= self.width or y >= self.height:
+                raise IndexError ("coordinates out of range.")
+            else:
+                return self.internal [y][x]
         else:
-            raise IndexError ("FieldOfViewMap index must be a tuple.")
+            raise IndexError ("index must be a tuple.")
 
     def __setitem__ (self, point, value):
         """Set the visibility of a tile by coordinates.
@@ -189,7 +199,7 @@ class FieldOfViewMap:
             y, x = point
             self.internal [y][x] = value
         else:
-            raise IndexError ("FieldOfViewMap index must be a tuple.")
+            raise IndexError ("index must be a tuple.")
 
 class Octant:
     """Represents an octant with a given origin point.
@@ -197,12 +207,19 @@ class Octant:
     Attributes:
         index: index of this octant (0 to 7).
         origin: (y, x) origin of the octant.
+        multipliers: dictionary of multipliers used for coordinate
+        transformations.
     """
 
+    # lists of dictionary values for transformations
     multipliers = {
+        # x to x factors, for each octant
         "xx": [1,  0,  0, -1, -1,  0,  0,  1],
+        # y to x factors, for each octant
         "yx": [0,  1, -1,  0,  0, -1,  1,  0],
+        # x to y factors, for each octant
         "xy": [0,  1,  1,  0,  0, -1, -1,  0],
+        # y to y factors, for each octant
         "yy": [1,  0,  0,  1, -1,  0,  0, -1]
     }
 
@@ -221,7 +238,7 @@ class Octant:
         if not isinstance (index, int):
             raise TypeError ("index must be an integer.")
         elif index < 0 or index >= 8:
-            raise ValueError ("Invalid octant index.")
+            raise ValueError ("invalid octant index.")
         elif not isinstance (origin, tuple):
             raise TypeError ("origin must be a tuple.")
         elif not isinstance (origin [0], int) or \
@@ -244,10 +261,10 @@ class Octant:
             TypeError: if one of the coordinates of point is not an integer.
         """
         if not isinstance (point, tuple):
-            raise TypeError ("point should be a tuple.")
+            raise TypeError ("point must be a tuple.")
         elif not isinstance (point [0], int) or \
              not isinstance (point [1], int):
-            raise TypeError ("point coordinates should be integers.")
+            raise TypeError ("coordinates must be integers.")
         else:
             y, x = point
             transformed = \

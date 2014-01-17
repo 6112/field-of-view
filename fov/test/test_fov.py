@@ -35,19 +35,22 @@ class TestFoV (unittest.TestCase):
     def test_fov (self):
         key = None
         while key != 'q':
-            visibility_map = self.world_map.compute_field_of_view (self.player,
+            field_of_view = self.world_map.get_field_of_view (self.player,
               SIGHT_RANGE)
-            render (self.screen, self.world_map, visibility_map, self.player)
+            render (self.screen, self.world_map, field_of_view, self.player)
             key = self.screen.getch ()
-            key = chr (key)
-            move (self.player, self.world_map, key)
+            try:
+                key = chr (key)
+            except ValueError:
+                pass
+            move_player (self.player, self.world_map, key)
 
     def tearDown (self):
         close_screen (self.screen)
 
-def move (player, world_map, key):
-    dx = 0
+def move_player (player, world_map, key):
     dy = 0
+    dx = 0
     if key == 'h':
         dx = -1
     elif key == 'j':
@@ -57,27 +60,27 @@ def move (player, world_map, key):
     elif key == 'l':
         dx = 1
     elif key == 'y':
-        dx = -1
         dy = -1
+        dx = -1
     elif key == 'u':
-        dx = 1
         dy = -1
-    elif key == 'b':
-        dx = -1
-        dy = 1
-    elif key == 'n':
         dx = 1
+    elif key == 'b':
         dy = 1
-    player.x += dx
+        dx = -1
+    elif key == 'n':
+        dy = 1
+        dx = 1
     player.y += dy
+    player.x += dx
     if not world_map [player.y, player.x].walkable:
-        player.x -= dx
         player.y -= dy
+        player.x -= dx
 
-def render (screen, world_map, visibility_map, player):
+def render (screen, world_map, field_of_view, player):
     for y in range (HEIGHT):
         for x in range (HEIGHT):
-            is_visible = visibility_map [y, x]
+            is_visible = field_of_view [y, x]
             tile_char = world_map [y, x].display_character
             screen.addstr (y, x, tile_char, curses.A_REVERSE if is_visible
               else 0)
@@ -97,5 +100,5 @@ def close_screen (screen):
     curses.echo ()
     curses.endwin ()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main ()
