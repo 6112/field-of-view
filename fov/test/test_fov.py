@@ -7,41 +7,48 @@ import curses
 HEIGHT = 40
 WIDTH = 40
 
+SIGHT_RANGE = 10
+
 class TestFoV (unittest.TestCase):
     def setUp (self):
         self.screen = open_screen ()
         self.player = fov.player.Player (HEIGHT // 2, WIDTH // 2)
-        self.map = []
+        ground_tile = fov.map.Tile ('.', False, True)
+        wall_tile = fov.map.Tile ('#', True, False)
+        map_list = []
         for y in range (HEIGHT):
-            self.map.append ([0 for x in range (WIDTH)])
+            map_list.append ([None for x in range (WIDTH)])
         for y in range (HEIGHT):
-            self.map [y][0] = 1
-            self.map [y][WIDTH - 1] = 1
+            map_list [y][0] = wall_tile
+            map_list [y][WIDTH - 1] = wall_tile
         for x in range (WIDTH):
-            self.map [0][x] = 1
-            self.map [HEIGHT - 1][x] = 1
+            map_list [0][x] = wall_tile
+            map_list [HEIGHT - 1][x] = wall_tile
         walls = [(14, 13), (14, 14), (14, 15),
                  (15, 13), (15, 14), (15, 15),
                  (16, 13), (16, 14), (16, 15), (16, 18), (16, 21), (16, 22),
                  (17, 13), (17, 14)]
-        for y,x in walls:
-            self.map [y][x] = 1
+        for y, x in walls:
+            map_list [y][x] = wall_tile
+        self.world_map = fov.map.WorldMap (map_list, ground_tile)
 
     def test_fov (self):
-        sight_block_map = fov.map.SightBlockMap (self.map)
+        #sight_block_map = fov.map.SightBlockMap (self.world_map)
         key = None
         while key != 'q':
-            visibility_map = fov.map.VisibilityMap (HEIGHT, WIDTH,
-              sight_block_map, self.player, self.screen)
-            render (self.screen, self.map, visibility_map, self.player)
+            #visibility_map = fov.map.VisibilityMap (HEIGHT, WIDTH,
+              #sight_block_map, self.player, self.screen)
+            visibility_map = self.world_map.compute_field_of_view (self.player,
+                    SIGHT_RANGE)
+            render (self.screen, self.world_map, visibility_map, self.player)
             key = self.screen.getch ()
             key = chr (key)
-            move (self.player, self.map, key)
+            move (self.player, self.world_map, key)
 
     def tearDown (self):
         close_screen (self.screen)
 
-def move (player, map, key):
+def move (player, world_map, key):
     dx = 0
     dy = 0
     if key == 'h':
@@ -66,18 +73,18 @@ def move (player, map, key):
         dy = 1
     player.x += dx
     player.y += dy
-    if map [player.y][player.x]:
+    if not world_map [player.y, player.x].walkable:
         player.x -= dx
         player.y -= dy
 
-def render (screen, map, visibility_map, player):
+def render (screen, world_map, visibility_map, player):
     for y in range (HEIGHT):
         for x in range (HEIGHT):
             is_visible = visibility_map [y, x]
-            tile_char = '#' if map[y][x] else '.'
+            tile_char = world_map [y, x].display_character
             screen.addstr (y, x, tile_char, curses.A_REVERSE if is_visible
               else 0)
-    screen.addstr (player.y, player.x, '@')
+    screen.addstr (player.y, player.x, '@', curses.A_REVERSE)
     screen.addstr (HEIGHT + 1, 3, "Use hjkl to move around.")
 
 def open_screen ():

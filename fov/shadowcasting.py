@@ -1,43 +1,54 @@
-SIGHT_RANGE = 16
+import fov.map
 
-def compute (self):
-    cast_light (self, self.player.x, self.player.y, 1, 1.0, 0.0, SIGHT_RANGE,
-      1, 0, 0, 1, 0)
+def compute (world_map, sight_map):
+    """Compute shadowcasting on a given FieldOfViewMap"""
+    player = sight_map.player
+    radius = sight_map.radius
+    for octant_index in range (8):
+        cast_light (world_map, sight_map, player, 1, 1.0, 0.0, 
+          radius, fov.map.Octant (0, (player.y, player.x)))
 
-def cast_light (self, cx, cy, row, start, end, radius, xx, xy, yx, yy, id):
-    if start < end:
+def cast_light (world_map, sight_map, player, starting_row, start_slope, \
+        end_slope, radius, octant):
+    """Cast a ray of light onto the map.
+    
+    Args:
+        world_map: the map to cast the ray onto.
+        player: the player whose position is the origin of the rays.
+    """
+    if start_slope < end_slope:
         return
-    radius_squared = radius * radius
-    for j in range (row, radius + 1):
-        dx, dy = -j - 1, -j
+    for row in range (starting_row, radius + 1):
+        dx, dy = -row - 1, -row
         blocked = False
         while dx <= 0:
             dx += 1
             # translate dx, dy into map coordinates
-            X, Y = cx + dx * xx + dy * xy, cy + dx * yx + dy * yy
-            # l_slope and r_slope are the slopes for the extremities
-            l_slope, r_slope = (dx - 0.5) / (dy + 0.5), (dx + 0.5) / (dy - 0.5)
-            if start < r_slope:
+            y, x = octant.transformed_point ((dy, dx))
+            # left_slope and right_slope are the slopes for the extremities
+            left_slope = (dx - 0.5) / (dy + 0.5)
+            right_slope = (dx + 0.5) / (dy - 0.5)
+            if start_slope < right_slope:
                 continue
-            elif end > l_slope:
+            elif end_slope > left_slope:
                 break
             else:
                 # our light beam is touching the square, light it
-                if dx * dx + dy * dy < radius_squared:
-                    self [Y, X] = True
+                if dx * dx + dy * dy < radius * radius:
+                    sight_map [y, x] = True
                 if blocked:
-                    if self.sight_block_map [Y, X]:
-                        new_start = r_slope
+                    if world_map [y, x].blocks_sight:
+                        new_start_slope = right_slope
                         continue
                     else:
                         blocked = False
-                        start = new_start
+                        start_slope = new_start_slope
                 else:
-                    if self.sight_block_map [Y, X] and j < radius:
+                    if world_map [y, x].blocks_sight and row < radius:
                         # this is a blocking square, start a child scan
                         blocked = True
-                        cast_light (self, cx, cy, j + 1, start, l_slope, radius,
-                                xx, xy, yx, yy, id + 1)
-                        new_start = r_slope
+                        cast_light (world_map, sight_map, player, row + 1, start_slope, left_slope, radius,
+                                octant)
+                        new_start_slope = right_slope
         if blocked:
             break
