@@ -32,6 +32,8 @@ def cast_light (world_map, sight_map, player, starting_row, start_slope, \
             dx += 1
             # translate dx, dy into map coordinates
             y, x = octant.transformed_point ((dy, dx))
+            if y < 0 or x < 0 or y >= world_map.height or x >= world_map.width:
+                continue
             # left_slope and right_slope are the slopes for the extremities
             left_slope = (dx - 0.5) / (dy + 0.5)
             right_slope = (dx + 0.5) / (dy - 0.5)
