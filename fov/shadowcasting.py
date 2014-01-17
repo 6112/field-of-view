@@ -1,7 +1,7 @@
 import fov.map
 
 def compute (world_map, sight_map):
-    """Compute shadowcasting on a given FieldOfViewMap"""
+    """Compute shadowcasting on a given map."""
     player = sight_map.player
     radius = sight_map.radius
     for octant_index in range (8):
@@ -13,8 +13,14 @@ def cast_light (world_map, sight_map, player, starting_row, start_slope, \
     """Cast a ray of light onto the map.
     
     Args:
-        world_map: the map to cast the ray onto.
-        player: the player whose position is the origin of the rays.
+        world_map: WorldMap to cast the ray onto.
+        sight_map: FieldOfViewMap to cast the ray onto.
+        player: player whose position is the origin of the rays.
+        starting_row: row at which to start iterating.
+        start_slope: maximum slope of the tiles to check.
+        end_slope: minimum slope of the tiles to check.
+        radius: sight radius.
+        octant: Octant to use for coordinate transformations.
     """
     if start_slope < end_slope:
         return

@@ -154,7 +154,6 @@ class FieldOfViewMap:
         self._compute_visibility ()
 
     def _compute_visibility (self):
-        """Computes the field of view using an external algorithm."""
         fov.shadowcasting.compute (self.world_map, self)
 
     def __getitem__ (self, point):
