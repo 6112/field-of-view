@@ -179,7 +179,8 @@ class FieldOfViewMap:
             y, x = point
             if not isinstance (y, int) or not isinstance (x, int):
                 raise IndexError ("coordinates must be integers.")
-            elif y < 0 or x < 0 or x >= self.width or y >= self.height:
+            elif y < 0 or x < 0 or \
+                 x >= self.world_map.width or y >= self.world_map.height:
                 raise IndexError ("coordinates out of range.")
             else:
                 return self.internal [y][x]
